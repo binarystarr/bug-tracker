@@ -1,17 +1,19 @@
 <script lang="ts">
   import { v4 as uuidv4 } from 'uuid'
   import type { Bug } from '../lib/supabase'
+  import type { User } from '@supabase/supabase-js'
 
   export let bug: Partial<Bug> | null = null
   export let onSubmit: (bug: Partial<Bug>) => void
   export let onCancel: () => void
+  export let user: User
 
   let title = bug?.title || ''
   let description = bug?.description || ''
   let status = bug?.status || 'open'
   let priority = bug?.priority || 'medium'
   let assigned_to = bug?.assigned_to || ''
-  let reporter = bug?.reporter || ''
+  let reporter = bug?.reporter || user.email || ''
 
   let errors: Record<string, string> = {}
 
@@ -34,7 +36,7 @@
       status,
       priority,
       assigned_to: assigned_to.trim() || null,
-      reporter: reporter.trim() || null,
+      reporter: reporter.trim() || user.email || null,
       updated_at: new Date().toISOString()
     }
 
@@ -130,9 +132,13 @@
           id="reporter"
           type="text"
           bind:value={reporter}
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Who reported this bug?"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+          placeholder={user.email || "Who reported this bug?"}
+          readonly={!bug?.id}
         />
+        {#if !bug?.id}
+          <p class="text-xs text-gray-500 mt-1">Automatically set to your email</p>
+        {/if}
       </div>
 
       <div>

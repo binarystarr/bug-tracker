@@ -1,5 +1,5 @@
 ---
-import BugTracker from '../components/BugTracker.svelte';
+import App from '../components/App.svelte';
 ---
 
 <html lang="en">
@@ -10,7 +10,7 @@ import BugTracker from '../components/BugTracker.svelte';
 		<meta name="generator" content={Astro.generator} />
 		<title>Bug Tracker</title>
 	</head>
-	<body class="bg-gray-50 min-h-screen">
-		<BugTracker client:load />
+	<body>
+		<App client:load />
 	</body>
 </html>

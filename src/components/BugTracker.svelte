@@ -3,6 +3,9 @@
   import { supabase, type Bug } from '../lib/supabase'
   import BugCard from './BugCard.svelte'
   import BugForm from './BugForm.svelte'
+  import type { User } from '@supabase/supabase-js'
+
+  export let user: User
 
   let bugs: Bug[] = []
   let showForm = false
@@ -145,10 +148,6 @@
 </script>
 
 <div class="max-w-6xl mx-auto p-6">
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">Bug Tracker</h1>
-    <p class="text-gray-600">Track and manage software bugs efficiently</p>
-  </div>
 
   {#if error}
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
@@ -213,6 +212,7 @@
         bug={editingBug}
         onSubmit={handleFormSubmit}
         onCancel={handleCancelForm}
+        {user}
       />
     </div>
   {/if}
