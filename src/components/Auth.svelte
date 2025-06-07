@@ -2,7 +2,6 @@
   import { supabase } from '../lib/supabase'
   import PasswordResetRequest from './PasswordResetRequest.svelte'
 
-  let isLogin = true
   let showPasswordReset = false
   let email = ''
   let password = ''
@@ -19,35 +18,19 @@
     message = ''
 
     try {
-      if (isLogin) {
-        // Sign in
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        
-        if (error) throw error
-        message = 'Welcome back!'
-      } else {
-        // Sign up
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        })
-        
-        if (error) throw error
-        message = 'Check your email for verification link!'
-      }
+      // Only sign in is allowed
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (error) throw error
+      message = 'Welcome back!'
     } catch (error) {
       message = error instanceof Error ? error.message : 'An error occurred'
     } finally {
       loading = false
     }
-  }
-
-  function toggleMode() {
-    isLogin = !isLogin
-    message = ''
   }
 
   function showPasswordResetForm() {
@@ -74,7 +57,7 @@
   <div class="max-w-md w-full space-y-8">
     <div>
       <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-        {isLogin ? 'Sign in to Bug Tracker' : 'Create your account'}
+        Sign in to Bug Tracker
       </h2>
       <p class="mt-2 text-center text-sm text-gray-600">
         Track and manage your bugs efficiently
@@ -108,7 +91,7 @@
             id="password"
             name="password"
             type="password"
-            autocomplete={isLogin ? 'current-password' : 'new-password'}
+            autocomplete="current-password"
             required
             bind:value={password}
             on:keydown={handleKeydown}
@@ -130,28 +113,18 @@
           disabled={loading}
           class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Loading...' : isLogin ? 'Sign in' : 'Sign up'}
+          {loading ? 'Loading...' : 'Sign in'}
         </button>
       </div>
 
-      <div class="text-center space-y-2">
+      <div class="text-center">
         <button
           type="button"
-          on:click={toggleMode}
-          class="text-sm text-blue-600 hover:text-blue-500 block w-full"
+          on:click={showPasswordResetForm}
+          class="text-sm text-gray-600 hover:text-gray-500"
         >
-          {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+          Forgot your password?
         </button>
-        
-        {#if isLogin}
-          <button
-            type="button"
-            on:click={showPasswordResetForm}
-            class="text-sm text-gray-600 hover:text-gray-500"
-          >
-            Forgot your password?
-          </button>
-        {/if}
       </div>
     </form>
   </div>

@@ -4,12 +4,20 @@
   import Auth from './Auth.svelte'
   import BugTracker from './BugTracker.svelte'
   import PasswordReset from './PasswordReset.svelte'
+  import UserManagement from './UserManagement.svelte'
   import type { User } from '@supabase/supabase-js'
 
   let user: User | null = null
   let loading = true
   let isPasswordReset = false
   let preservedAccessToken = ''
+  let showUserManagement = false
+
+  // Define super admin email (you can make this configurable later)
+  const SUPER_ADMIN_EMAIL = 'binarystarr@gmail.com' // Replace with your email
+  
+  // Check if current user is super admin
+  $: isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL
 
   // Check for password reset token but DON'T clear session
   async function checkAndHandlePasswordReset() {
@@ -78,10 +86,36 @@
   })
 
   async function handleSignOut() {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      console.error('Error signing out:', error)
+    try {
+      // First check if we have a session
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session) {
+        // If we have a session, try to sign out normally
+        const { error } = await supabase.auth.signOut()
+        if (error) {
+          console.error('Error signing out:', error)
+        }
+      }
+    } catch (error) {
+      console.error('Session check failed:', error)
     }
+    
+    // Always clear local user state regardless of Supabase result
+    user = null
+    
+    // Clear any hash params
+    if (typeof window !== 'undefined') {
+      window.location.hash = ''
+    }
+  }
+
+  function openUserManagement() {
+    showUserManagement = true
+  }
+
+  function closeUserManagement() {
+    showUserManagement = false
   }
 
   function handlePasswordResetComplete() {
@@ -128,12 +162,22 @@
             <h1 class="text-2xl font-bold text-gray-900">Bug Tracker</h1>
             <p class="text-sm text-gray-600">Welcome back, {user.email}</p>
           </div>
-          <button
-            on:click={handleSignOut}
-            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Sign out
-          </button>
+          <div class="flex items-center space-x-3">
+            {#if isSuperAdmin}
+              <button
+                on:click={openUserManagement}
+                class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Manage Users
+              </button>
+            {/if}
+            <button
+              on:click={handleSignOut}
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -143,4 +187,9 @@
       <BugTracker {user} />
     </main>
   </div>
+
+  <!-- User Management Modal -->
+  {#if showUserManagement}
+    <UserManagement onClose={closeUserManagement} />
+  {/if}
 {/if} 
