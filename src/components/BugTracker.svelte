@@ -16,16 +16,21 @@
   // Filters
   let statusFilter = 'all'
   let priorityFilter = 'all'
+  let assignedToFilter = 'all'
   let searchTerm = ''
+
+  // Get unique assignees for the filter dropdown
+  $: uniqueAssignees = [...new Set(bugs.filter(bug => bug.assigned_to).map(bug => bug.assigned_to))].sort()
 
   $: filteredBugs = bugs.filter(bug => {
     const matchesStatus = statusFilter === 'all' || bug.status === statusFilter
     const matchesPriority = priorityFilter === 'all' || bug.priority === priorityFilter
+    const matchesAssignee = assignedToFilter === 'all' || bug.assigned_to === assignedToFilter
     const matchesSearch = !searchTerm || 
       bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (bug.description && bug.description.toLowerCase().includes(searchTerm.toLowerCase()))
     
-    return matchesStatus && matchesPriority && matchesSearch
+    return matchesStatus && matchesPriority && matchesAssignee && matchesSearch
   })
 
   onMount(() => {
@@ -189,6 +194,16 @@
           <option value="medium">Medium</option>
           <option value="high">High</option>
           <option value="critical">Critical</option>
+        </select>
+
+        <select
+          bind:value={assignedToFilter}
+          class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">All Assignees</option>
+          {#each uniqueAssignees as assignee}
+            <option value={assignee}>{assignee}</option>
+          {/each}
         </select>
       </div>
 
